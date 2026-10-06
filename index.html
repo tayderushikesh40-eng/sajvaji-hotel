@@ -237,9 +237,11 @@
             {
                 category: "Starter", type: "starter", icon: "fa-sun",
                 items: [
+                    {name: "bisleri", full:20,half:null},
                     { name: "Roasted papad", full: 15, half: null },
                     { name: "Masala papad", full: 25, half: null },
                     { name: "Fry papad", full: 20, half: null }
+                    
                 ]
             },
             {
@@ -279,6 +281,7 @@
                     { name: "Jeera rice", full: 100, half: 50 },
                     { name: "Plain rice", full: 90, half: 50 },
                     { name: "Roti", full: 12, half: null },
+                    {name: "boil", full:15,half: null},
                     { name: "Bhakar", full: 25, half: null }
                 ]
             }
@@ -286,6 +289,24 @@
 
         let cart = {};
         let bluetoothDevice = null;
+        let bluetoothServer = null;
+        let bluetoothCharacteristic = null;
+        let serialPort = null;
+        let serialWriter = null;
+
+        // BT-58D / Izo Printer
+        const PRINTER_NAME = "Izo Printer";
+        const PRINTER_BAUD_RATE = 9600;
+
+        // Common BLE thermal-printer service/characteristic UUIDs.
+        // The code also scans all discovered GATT services/characteristics,
+        // so it is not limited to one exact firmware UUID.
+        const COMMON_BLE_SERVICES = [
+            "0000ffe0-0000-1000-8000-00805f9b34fb",
+            "0000ffe5-0000-1000-8000-00805f9b34fb",
+            "000018f0-0000-1000-8000-00805f9b34fb",
+            "49535343-fe7d-4ae5-8fa9-9fafd205e455"
+        ];
 
         function escapeQuotes(str) {
             return str.replace(/'/g, "\\'");
@@ -421,7 +442,7 @@
             localStorage.setItem("savajiBillingHistory", JSON.stringify(history.slice(0, 100)));
         }
 
-        function printCurrentBill() {
+        async function printCurrentBill() {
             const keys = Object.keys(cart);
 
             if (keys.length === 0) {
@@ -433,34 +454,24 @@
             const billNumber = generateBillNumber();
             const dateText = now.toLocaleString("en-IN");
 
-            let rows = "";
             let total = 0;
-
-            keys.forEach(key => {
+            const items = keys.map(key => {
                 const item = cart[key];
                 const itemTotal = item.price * item.qty;
                 total += itemTotal;
-
-                rows += `
-                    <tr>
-                        <td>${item.name} (${item.portion})</td>
-                        <td>${item.qty}</td>
-                        <td>₹${item.price}</td>
-                        <td>₹${itemTotal}</td>
-                    </tr>`;
+                return { ...item, total: itemTotal };
             });
 
+            // Keep the existing on-screen bill area updated. Printing is done directly through ESC/POS.
             document.getElementById("printBill").innerHTML = `
                 <div class="print-header">
                     <h1>Savaji Restaurant</h1>
                     <p>Restaurant Billing Receipt</p>
                 </div>
-
                 <div class="print-meta">
                     <span><strong>Bill No:</strong> ${billNumber}</span>
                     <span><strong>Date:</strong> ${dateText}</span>
                 </div>
-
                 <table class="print-table">
                     <thead>
                         <tr>
@@ -470,22 +481,344 @@
                             <th>Amount</th>
                         </tr>
                     </thead>
-                    <tbody>${rows}</tbody>
+                    <tbody>
+                        ${items.map(item => `
+                            <tr>
+                                <td>${item.name} (${item.portion})</td>
+                                <td>${item.qty}</td>
+                                <td>₹${item.price}</td>
+                                <td>₹${item.total}</td>
+                            </tr>`).join("")}
+                    </tbody>
                 </table>
-
                 <div class="print-total">
                     <span>Grand Total</span>
                     <span>₹${total}</span>
                 </div>
-
-                <div class="print-footer">
-                    Thank you for visiting Savaji Restaurant!
-                </div>
+                <div class="print-footer">Thank you for visiting Savaji Restaurant!</div>
             `;
 
-            // Exactly the current/selected cart is saved and printed.
-            saveBillToHistory(billNumber, dateText);
-            window.print();
+            const button = document.querySelector(".btn-print");
+            const oldText = button ? button.innerHTML : "";
+            if (button) {
+                button.disabled = true;
+                button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Printing...';
+            }
+
+            try {
+                // First use an already-connected printer.
+                if (serialPort && serialWriter) {
+                    await printReceiptToSerial(serialPort, items, total, billNumber, dateText);
+                } else if (bluetoothCharacteristic) {
+                    await printReceiptToBluetooth(items, total, billNumber, dateText);
+                } else {
+                    // One click can request either BLE or Serial permission.
+                    // BLE is attempted first; if it is not usable, Serial is tried.
+                    const connected = await ensurePrinterConnection();
+                    if (!connected) {
+                        throw new Error("No compatible printer connection was established.");
+                    }
+
+                    if (serialPort && serialWriter) {
+                        await printReceiptToSerial(serialPort, items, total, billNumber, dateText);
+                    } else if (bluetoothCharacteristic) {
+                        await printReceiptToBluetooth(items, total, billNumber, dateText);
+                    } else {
+                        throw new Error("Printer connected but no writable printer channel was found.");
+                    }
+                }
+
+                // Save only after the receipt was successfully sent.
+                saveBillToHistory(billNumber, dateText);
+
+                // Clear the current order after successful printing.
+                cart = {};
+                updateCart();
+
+                alert("Bill printed successfully on " + PRINTER_NAME + ".");
+            } catch (error) {
+                console.error("Print error:", error);
+                alert(
+                    "Print nahi hua.\n\n" +
+                    "Printer 'Izo Printer' ON aur Windows Bluetooth me paired rakhen. " +
+                    "Agar printer COM port ke roop me paired hai to Serial option use hoga.\n\n" +
+                    "Error: " + (error.message || error)
+                );
+            } finally {
+                if (button) {
+                    button.disabled = false;
+                    button.innerHTML = oldText;
+                }
+            }
+        }
+
+        function escPosText(text) {
+            // Thermal printers commonly accept ASCII reliably.
+            // Convert the rupee sign to Rs. to avoid unsupported-glyph output.
+            return String(text).replace(/₹/g, "Rs.");
+        }
+
+        function padRight(text, length) {
+            text = String(text);
+            return text.length >= length ? text.slice(0, length) : text + " ".repeat(length - text.length);
+        }
+
+        function padLeft(text, length) {
+            text = String(text);
+            return text.length >= length ? text.slice(0, length) : " ".repeat(length - text.length) + text;
+        }
+
+        function fitItemName(name, maxLength) {
+            name = String(name);
+            return name.length <= maxLength ? name : name.slice(0, Math.max(0, maxLength - 1)) + "…";
+        }
+
+        function buildReceiptBytes(items, total, billNumber, dateText) {
+            // 58mm / 32-column ESC/POS receipt.
+            const WIDTH = 32;
+            const lines = [];
+
+            lines.push("\x1b@");                 // Initialize printer
+            lines.push("\x1ba\x01");            // Center
+            lines.push("\x1b!\x08");            // Bold
+            lines.push("SAVAJI RESTAURANT\n");
+            lines.push("\x1b!\x00");
+            lines.push("Restaurant Billing Receipt\n");
+            lines.push("--------------------------------\n");
+
+            lines.push("\x1ba\x00");             // Left
+            lines.push("Bill No: " + billNumber + "\n");
+            lines.push("Date: " + dateText + "\n");
+            lines.push("--------------------------------\n");
+
+            // 32 columns: item 18 + qty 4 + amount 10
+            lines.push(
+                padRight("Item", 18) +
+                padLeft("Qty", 4) +
+                padLeft("Amount", 10) + "\n"
+            );
+            lines.push("--------------------------------\n");
+
+            items.forEach(item => {
+                const itemName = fitItemName(
+                    escPosText(item.name) + " (" + escPosText(item.portion) + ")",
+                    18
+                );
+                const amount = "Rs." + item.total;
+                lines.push(
+                    padRight(itemName, 18) +
+                    padLeft(item.qty, 4) +
+                    padLeft(amount, 10) + "\n"
+                );
+            });
+
+            lines.push("--------------------------------\n");
+            lines.push("\x1b!\x08");
+            lines.push(padRight("GRAND TOTAL", 18) + padLeft("Rs." + total, 14) + "\n");
+            lines.push("\x1b!\x00");
+            lines.push("\n");
+            lines.push("\x1ba\x01");
+            lines.push("Thank you for visiting!\n");
+            lines.push("Savaji Restaurant\n");
+            lines.push("\n\n\n");
+            lines.push("\x1dV\x00");            // Full cut, if supported
+
+            return new TextEncoder().encode(lines.join(""));
+        }
+
+        async function writeChunked(writer, bytes, chunkSize = 180) {
+            for (let i = 0; i < bytes.length; i += chunkSize) {
+                await writer.write(bytes.slice(i, i + chunkSize));
+                await new Promise(resolve => setTimeout(resolve, 12));
+            }
+        }
+
+        async function printReceiptToSerial(port, items, total, billNumber, dateText) {
+            if (!port.writable) {
+                throw new Error("Serial printer port is not writable.");
+            }
+
+            if (!serialWriter) {
+                serialWriter = port.writable.getWriter();
+            }
+
+            const bytes = buildReceiptBytes(items, total, billNumber, dateText);
+            await writeChunked(serialWriter, bytes);
+        }
+
+        async function printReceiptToBluetooth(items, total, billNumber, dateText) {
+            if (!bluetoothCharacteristic) {
+                throw new Error("Bluetooth printer write characteristic is unavailable.");
+            }
+
+            const bytes = buildReceiptBytes(items, total, billNumber, dateText);
+
+            // BLE characteristics usually have small packet limits.
+            const chunkSize = bluetoothCharacteristic.properties.writeWithoutResponse ? 180 : 20;
+
+            for (let i = 0; i < bytes.length; i += chunkSize) {
+                const chunk = bytes.slice(i, i + chunkSize);
+
+                if (bluetoothCharacteristic.properties.writeWithoutResponse &&
+                    bluetoothCharacteristic.writeValueWithoutResponse) {
+                    await bluetoothCharacteristic.writeValueWithoutResponse(chunk);
+                } else {
+                    await bluetoothCharacteristic.writeValue(chunk);
+                }
+
+                await new Promise(resolve => setTimeout(resolve, 25));
+            }
+        }
+
+        async function findWritableBluetoothCharacteristic(server) {
+            const services = await server.getPrimaryServices();
+
+            for (const service of services) {
+                const characteristics = await service.getCharacteristics();
+
+                for (const characteristic of characteristics) {
+                    const p = characteristic.properties || {};
+                    if (p.writeWithoutResponse || p.write) {
+                        return characteristic;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        async function connectBluetoothPrinter(showAlerts = false) {
+            if (!navigator.bluetooth) {
+                if (showAlerts) {
+                    alert("Web Bluetooth उपलब्ध नहीं है. Chrome/Edge में try करें.");
+                }
+                return false;
+            }
+
+            const status = document.getElementById("bluetoothStatus");
+
+            try {
+                if (status) status.innerText = "Bluetooth printer खोज रहे हैं...";
+
+                bluetoothDevice = await navigator.bluetooth.requestDevice({
+                    acceptAllDevices: true,
+                    optionalServices: COMMON_BLE_SERVICES
+                });
+
+                if (!bluetoothDevice) {
+                    throw new Error("Bluetooth device was not selected.");
+                }
+
+                if (status) status.innerText = "Connecting to " + (bluetoothDevice.name || PRINTER_NAME) + "...";
+
+                bluetoothServer = bluetoothDevice.gatt
+                    ? await bluetoothDevice.gatt.connect()
+                    : null;
+
+                if (!bluetoothServer) {
+                    throw new Error("This Bluetooth device does not expose GATT/BLE.");
+                }
+
+                bluetoothCharacteristic = await findWritableBluetoothCharacteristic(bluetoothServer);
+
+                if (!bluetoothCharacteristic) {
+                    throw new Error("No writable BLE characteristic found.");
+                }
+
+                bluetoothDevice.addEventListener("gattserverdisconnected", () => {
+                    bluetoothServer = null;
+                    bluetoothCharacteristic = null;
+                    if (status) status.innerText = "Bluetooth printer disconnected.";
+                });
+
+                if (status) {
+                    status.innerText = "Connected: " + (bluetoothDevice.name || PRINTER_NAME);
+                }
+
+                return true;
+            } catch (error) {
+                console.warn("BLE printer connection failed:", error);
+                bluetoothCharacteristic = null;
+                bluetoothServer = null;
+                if (status) status.innerText = "BLE connection unavailable.";
+                return false;
+            }
+        }
+
+        async function connectSerialPrinter(showAlerts = false) {
+            if (!("serial" in navigator)) {
+                if (showAlerts) {
+                    alert("Web Serial उपलब्ध नहीं है. Chrome/Edge का latest version use करें.");
+                }
+                return false;
+            }
+
+            try {
+                const port = await navigator.serial.requestPort();
+                await port.open({ baudRate: PRINTER_BAUD_RATE });
+
+                serialPort = port;
+                serialWriter = serialPort.writable ? serialPort.writable.getWriter() : null;
+
+                if (!serialWriter) {
+                    throw new Error("Selected serial port is not writable.");
+                }
+
+                const status = document.getElementById("bluetoothStatus");
+                if (status) status.innerText = "Connected by Serial/COM at 9600 baud.";
+
+                return true;
+            } catch (error) {
+                console.warn("Serial printer connection failed:", error);
+                serialPort = null;
+                serialWriter = null;
+                return false;
+            }
+        }
+
+        async function ensurePrinterConnection() {
+            // Try BLE first. If the printer is a Bluetooth Classic/SPP device,
+            // Chrome exposes it as a serial COM port instead, so try Web Serial.
+            const bleConnected = await connectBluetoothPrinter(false);
+            if (bleConnected) return true;
+
+            const serialConnected = await connectSerialPrinter(false);
+            if (serialConnected) return true;
+
+            return false;
+        }
+
+        async function connectPrinter() {
+            const status = document.getElementById("bluetoothStatus");
+
+            if (status) {
+                status.innerText = "Izo Printer connection सुरू आहे...";
+            }
+
+            // Try BLE first, then COM/Serial.
+            const bleConnected = await connectBluetoothPrinter(false);
+            if (bleConnected) {
+                alert("Izo Printer Bluetooth/BLE connected successfully.");
+                return;
+            }
+
+            const serialConnected = await connectSerialPrinter(false);
+            if (serialConnected) {
+                alert("Izo Printer Serial/COM connected successfully.");
+                return;
+            }
+
+            if (status) {
+                status.innerText = "Printer connect झाला नाही.";
+            }
+
+            alert(
+                "Izo Printer connect झाला नाही.\n\n" +
+                "1) Printer ON करा.\n" +
+                "2) Windows Bluetooth मध्ये 'Izo Printer' pair करा.\n" +
+                "3) पुन्हा printer button दाबा.\n\n" +
+                "जर तो Bluetooth Classic printer असेल तर Windows ने त्याला COM port दिलेला असणे आवश्यक आहे."
+            );
         }
 
         function toggleDropdown() {
