@@ -1,1018 +1,1556 @@
+   
+
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Savaji Restaurant - Billing System</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- Google Fonts & FontAwesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        
         :root {
-            --primary-color: #d97706;
-            --primary-hover: #b45309;
-            --bg-color: #f8fafc;
+            --primary: #991b1b;
+            --primary-dark: #7f1d1d;
+            --accent: #b91c1c;
+            --bg-color: #f1f5f9;
             --card-bg: #ffffff;
             --text-main: #1e293b;
             --text-muted: #64748b;
             --border-color: #e2e8f0;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
-        header { background: linear-gradient(135deg, #1e293b, #0f172a); color: rgb(255, 255, 255); padding: 1.25rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow); }
-        header h1 { font-size: 1.35rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
-        header h1 i { color: var(--primary-color); }
-        .container { display: grid; grid-template-columns: 1fr 380px; gap: 20px; padding: 20px; max-width: 1400px; margin: 0 auto; width: 100%; flex: 1; }
-        .menu-section { display: flex; flex-direction: column; gap: 20px; }
-        .category-card { background: var(--card-bg); border-radius: 12px; padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--border-color); }
-        .category-title { font-size: 1.25rem; font-weight: 700; padding-bottom: 10px; margin-bottom: 15px; border-bottom: 2px solid var(--border-color); display: flex; align-items: center; gap: 10px; }
-        .category-title.starter { color: #d97706; border-color: #fde68a; }
-        .category-title.nonveg { color: #dc2626; border-color: #fecaca; }
-        .category-title.veg { color: #16a34a; border-color: #bbf7d0; }
-        .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
-        .item-card { border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 15px; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.2s ease; background: #fafafa; }
-        .item-card:hover { border-color: var(--primary-color); box-shadow: 0 2px 8px rgba(0,0,0,0.05); background: #fff; }
-        .item-name { font-weight: 600; font-size: 1rem; margin-bottom: 8px; text-transform: capitalize; }
-        .price-options { display: flex; gap: 8px; margin-top: 5px; }
-        .btn-add { flex: 1; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: #fff; cursor: pointer; font-size: 0.85rem; font-weight: 500; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s, border-color 0.2s; }
-        .btn-add:hover { background: #e0b402; border-color: var(--primary-color); color: var(--primary-color); }
-        .billing-section { background: var(--card-bg); border-radius: 12px; padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--border-color); display: flex; flex-direction: column; height: calc(100vh - 110px); position: sticky; top: 20px; }
-        .billing-header { font-size: 1.2rem; font-weight: 700; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
-        .cart-items { flex: 1; overflow-y: auto; margin: 15px 0; padding-right: 5px; }
-        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed var(--border-color); }
-        .cart-item-info { flex: 1; }
-        .cart-item-title { font-weight: 600; font-size: 0.9rem; }
-        .cart-item-price { font-size: 0.8rem; color: var(--text-muted); }
-        .qty-controls { display: flex; align-items: center; gap: 8px; margin-left: 10px; }
-        .qty-btn { width: 26px; height: 26px; border-radius: 4px; border: 1px solid var(--border-color); background: #f1f5f9; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; }
-        .qty-btn:hover { background: #0664df; }
-        .billing-footer { border-top: 2px solid var(--border-color); padding-top: 15px; }
-        .summary-row { display: flex; justify-content: space-between; font-size: 1.1rem; font-weight: 700; margin-bottom: 15px; }
-        .btn-print { width: 100%; padding: 12px; background: var(--primary-color); color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: background 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; }
-        .btn-print:hover { background: var(--primary-hover); }
-        .empty-cart { text-align: center; color: var(--text-muted); margin-top: 40px; font-size: 0.95rem; }
 
-        .main-header { flex-wrap: wrap; gap: 18px; }
-        .logo-container { display:flex; align-items:center; gap:10px; white-space:nowrap; }
-        .logo-icon { color:var(--primary-color); font-size:1.35rem; }
-        .brand-name { font-size:1.35rem; font-weight:700; }
-        .nav-links { display:flex; align-items:center; gap:18px; }
-        .nav-links a { color:#e2e8f0; text-decoration:none; font-size:.9rem; font-weight:600; }
-        .nav-links a:hover, .nav-links a.active { color:#fbbf24; }
-        .search-container { position:relative; flex:1; max-width:420px; min-width:220px; }
-        .search-container input { width:100%; padding:10px 40px 10px 14px; border:1px solid #475569; border-radius:9px; outline:none; background:#fff; color:#1e293b; }
-        .search-icon { position:absolute; right:13px; top:50%; transform:translateY(-50%); color:#64748b; }
-        .header-actions { display:flex; align-items:center; gap:10px; }
-        .action-btn, .menu-icon { width:40px; height:40px; border:1px solid #475569; border-radius:9px; background:#1e293b; color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative; }
-        .action-btn:hover, .menu-icon:hover { background:#334155; }
-        .dropdown-content { display:none; position:absolute; z-index:1000; right:0; top:48px; min-width:210px; background:#fff; border:1px solid #e2e8f0; border-radius:10px; box-shadow:0 12px 30px rgba(0,0,0,.18); padding:7px; }
-        .dropdown-content.show { display:block; }
-        .dropdown-content button { width:100%; text-align:left; border:0; background:#fff; padding:10px 12px; border-radius:7px; cursor:pointer; font-size:.9rem; color:#1e293b; }
-        .dropdown-content button:hover { background:#f1f5f9; }
-        .modal { display:none; position:fixed; inset:0; z-index:2000; background:rgba(15,23,42,.6); align-items:center; justify-content:center; padding:20px; }
-        .modal.show { display:flex; }
-        .modal-card { width:min(460px,100%); background:#fff; border-radius:14px; padding:24px; box-shadow:0 20px 50px rgba(0,0,0,.25); }
-        .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
-        .modal-header h2 { font-size:1.15rem; }
-        .close-btn { border:0; background:#f1f5f9; width:32px; height:32px; border-radius:7px; cursor:pointer; }
-        .form-group { margin-bottom:13px; }
-        .form-group label { display:block; font-size:.85rem; font-weight:600; margin-bottom:6px; }
-        .form-group input { width:100%; padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; outline:none; }
-        .modal-primary { width:100%; padding:11px; border:0; border-radius:8px; background:var(--primary-color); color:#fff; font-weight:700; cursor:pointer; }
-        .history-list { max-height:420px; overflow:auto; }
-        .history-item { border:1px solid #e2e8f0; border-radius:9px; padding:12px; margin-bottom:9px; }
-        .history-item strong { display:block; margin-bottom:4px; }
-        .history-item small { color:#64748b; }
-        .print-bill { display:none; }
-        .search-result-item { padding:9px 11px; cursor:pointer; border-radius:6px; color:#1e293b; }
-        .search-result-item:hover { background:#f1f5f9; }
-        .bluetooth-status { padding:10px 12px; background:#eff6ff; color:#1d4ed8; border-radius:8px; margin-bottom:14px; font-size:.9rem; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 12px;
+            max-width: 480px;
+            margin: 0 auto;
+            padding-bottom: 85px;
+            position: relative;
+        }
+
+        /* Header Bar - Classy Look */
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 14px 18px;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            min-height: 56px;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(153, 27, 27, 0.15);
+        }
+
+        header .hdr-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: white;
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 6px 10px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        header .hdr-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        header h1 { 
+            font-size: 1.15rem; 
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 0.3px;
+        }
+
+        /* Search Bar below Header */
+        .header-search-container {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            padding: 0 18px 14px 18px;
+            border-radius: 0 0 12px 12px;
+            margin-bottom: 14px;
+            box-shadow: 0 6px 12px rgba(153, 27, 27, 0.1);
+        }
+
+        .header-search-container input {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 24px;
+            border: none;
+            font-size: 0.85rem;
+            outline: none;
+            background: #ffffff;
+            color: var(--text-main);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
+        }
+
+        /* Header Dropdowns */
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 55px;
+            background: white;
+            color: var(--text-main);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+            border-radius: 12px;
+            width: 220px;
+            z-index: 1000;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .dropdown-menu.left-menu { left: 12px; }
+        .dropdown-menu.right-menu { right: 12px; }
+
+        .dropdown-menu .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 13px 16px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-main);
+            cursor: pointer;
+            border-bottom: 1px solid #f8fafc;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .dropdown-menu .menu-item:last-child { border-bottom: none; }
+        .dropdown-menu .menu-item:hover { background: #fef2f2; color: var(--primary); }
+
+        /* Card Section */
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 12px;
+            border-bottom: 2px solid #f8fafc;
+            padding-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Form Inputs */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        label { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px; }
+        input, select {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.88rem;
+            outline: none;
+            background: #fff;
+            color: var(--text-main);
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+        }
+
+        /* Category Scroll Bar */
+        .category-scroll {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 6px;
+            margin-bottom: 12px;
+            white-space: nowrap;
+        }
+
+        .category-scroll::-webkit-scrollbar { display: none; }
+
+        .cat-chip {
+            padding: 7px 14px;
+            background: #f1f5f9;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .cat-chip.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 4px 10px rgba(153, 27, 27, 0.2);
+        }
+
+        /* Quick Menu Grid */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .menu-btn {
+            background: #fff5f5;
+            border: 1px solid #fee2e2;
+            padding: 10px 8px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.1s, box-shadow 0.2s;
+        }
+
+        .menu-btn:active { transform: scale(0.97); }
+        .menu-btn .name { font-size: 0.75rem; font-weight: 600; display: block; line-height: 1.2; margin-bottom: 6px; color: var(--text-main); }
+        .menu-btn .rate { font-size: 0.75rem; color: var(--primary); font-weight: 700; }
+        .menu-btn .cat-tag { font-size: 0.6rem; color: var(--text-muted); font-weight: 500; }
+
+        /* Table */
+        .simple-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.85rem;
+        }
+
+        .simple-table th {
+            background: #f8fafc;
+            color: var(--text-muted);
+            text-align: left;
+            padding: 8px 10px;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .simple-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 11px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: opacity 0.2s;
+        }
+
+        .btn:active { opacity: 0.9; }
+        .btn-green { background: #16a34a; color: white; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.2); }
+        .btn-blue { background: #0284c7; color: white; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2); }
+        .btn-red { background: #dc2626; color: white; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2); }
+        .btn-gray { background: #64748b; color: white; }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        /* SIDE-BY-SIDE TRACKER LAYOUT */
+        .tracker-two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .tracker-col {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .tracker-col.cash-col { border-top: 4px solid #16a34a; }
+        .tracker-col.online-col { border-top: 4px solid #0284c7; }
+
+        .tracker-col h3 {
+            font-size: 0.85rem;
+            text-align: center;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #f1f5f9;
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+
+        .tracker-list-box {
+            min-height: 130px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .tracker-row-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.78rem;
+            padding: 5px 0;
+            border-bottom: 1px dashed #f8fafc;
+        }
+
+        .tracker-row-item.expense {
+            color: #dc2626;
+            font-weight: 600;
+        }
+
+        .col-total-box {
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 2px solid var(--text-main);
+            font-weight: 700;
+            font-size: 0.85rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .diff-summary-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-bottom: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+
+        .diff-summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Bottom Nav - Classy Floating Bar */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            border-top: 1px solid var(--border-color);
+            z-index: 999;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
+        }
+
+        .nav-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-decoration: none;
+            width: 25%;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .nav-link i { font-size: 1.15rem; margin-bottom: 3px; }
+        .nav-link.active { color: var(--primary); }
+
+        .page-tab { display: none; }
+        .page-tab.active-tab { display: block; }
+
+        /* Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-body {
+            background: white;
+            width: 340px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 20px;
+            border-radius: 14px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .receipt-text { font-family: 'Courier New', monospace; font-size: 0.8rem; }
+
+
+        /* FIRST-TIME REGISTRATION */
+        #registrationGate {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            background: linear-gradient(135deg, #7f1d1d, #991b1b);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+        }
+        #registrationGate.hidden { display: none; }
+        .registration-card {
+            width: min(420px, 100%);
+            background: #fff;
+            border-radius: 18px;
+            padding: 24px;
+            box-shadow: 0 24px 60px rgba(0,0,0,.28);
+        }
+        .registration-card .reg-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 12px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fef2f2;
+            color: var(--primary);
+            font-size: 1.8rem;
+        }
+        .registration-card h2 {
+            text-align: center;
+            color: var(--text-main);
+            margin-bottom: 6px;
+        }
+        .registration-card .reg-subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: .82rem;
+            margin-bottom: 18px;
+        }
+        .registration-card .reg-field { margin-bottom: 12px; }
+        .registration-card .reg-field input {
+            width: 100%;
+            padding: 11px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 9px;
+            font-size: .9rem;
+            outline: none;
+        }
+        .registration-card .reg-field input:focus {
+            border-color: var(--primary);
+        }
+        .registration-error {
+            display: none;
+            color: #dc2626;
+            font-size: .78rem;
+            font-weight: 600;
+            margin: -3px 0 10px;
+        }
+
+        /* Print Settings */
         @media print {
-            body * { visibility:hidden !important; }
-            #printBill, #printBill * { visibility:visible !important; }
-            #printBill { display:block !important; position:absolute; left:0; top:0; width:100%; padding:20px; background:#fff; color:#000; font-family:Arial,sans-serif; }
-            .print-header { text-align:center; border-bottom:2px solid #000; padding-bottom:12px; margin-bottom:14px; }
-            .print-header h1 { font-size:24px; margin-bottom:5px; }
-            .print-header p { margin:3px 0; font-size:12px; }
-            .print-meta { display:flex; justify-content:space-between; font-size:12px; margin-bottom:12px; }
-            .print-table { width:100%; border-collapse:collapse; font-size:12px; }
-            .print-table th, .print-table td { border-bottom:1px solid #ccc; padding:7px 4px; text-align:left; }
-            .print-table th:nth-child(2), .print-table td:nth-child(2),
-            .print-table th:nth-child(3), .print-table td:nth-child(3),
-            .print-table th:nth-child(4), .print-table td:nth-child(4) { text-align:right; }
-            .print-total { margin-top:12px; border-top:2px solid #000; padding-top:9px; display:flex; justify-content:space-between; font-weight:700; font-size:15px; }
-            .print-footer { text-align:center; margin-top:22px; font-size:11px; }
+            body * { visibility: hidden !important; }
+            #printAreaModal, #printAreaModal * { visibility: visible !important; }
+            #printAreaModal { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; background: white !important; display: block !important; }
+            .no-print, .bottom-nav, header, .header-search-container, .card { display: none !important; }
+            @page { size: 58mm auto; margin: 0mm; }
         }
-
-        @media (max-width: 900px) { .container { grid-template-columns: 1fr; } .billing-section { height: auto; position: static; } }
     </style>
 </head>
-<body><header class="main-header">
-    <div class="logo-container">
-        <i class="fa-solid fa-utensils logo-icon"></i>
-        <span class="brand-name">Savaji Restaurant</span>
+<body>
+
+    <!-- FIRST-TIME REGISTRATION GATE -->
+    <div id="registrationGate">
+        <div class="registration-card">
+            <div class="reg-icon"><i class="fa-solid fa-user-plus"></i></div>
+            <h2>Register Your Restaurant</h2>
+            <p class="reg-subtitle">Register once before using the billing and tracker system.</p>
+
+            <div class="reg-field">
+                <label>Owner Name</label>
+                <input type="text" id="regOwnerName" placeholder="Enter owner name" autocomplete="name">
+            </div>
+
+            <div class="reg-field">
+                <label>Mobile Number</label>
+                <input type="tel" id="regMobile" placeholder="Enter mobile number" inputmode="numeric" maxlength="10">
+            </div>
+
+            <div class="reg-field">
+                <label>Restaurant / Hotel Name</label>
+                <input type="text" id="regHotelName" placeholder="e.g. Sawaji Hotel" value="Sawaji Hotel">
+            </div>
+
+            <div id="registrationError" class="registration-error"></div>
+
+            <button class="btn btn-green" onclick="completeRegistration()">
+                <i class="fa-solid fa-user-check"></i> Register & Continue
+            </button>
+        </div>
     </div>
-    
-    <nav class="nav-links">
-        <a href="#home" class="active">Home</a>
-        <a href="#menu">Menu</a>
-        <a href="#orders">Orders</a>
-        <a href="#contact">Contact</a>
+
+
+    <!-- Header Bar -->
+    <header class="no-print">
+        <button class="hdr-btn" onclick="toggleMenu('leftMenuDropdown', event)"><i class="fa-solid fa-bars"></i></button>
+        <h1 id="hdrTitle"><i class="fa-solid fa-utensils"></i> Sawaji Hotel</h1>
+        <button class="hdr-btn" onclick="toggleMenu('rightMenuDropdown', event)"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+
+        <!-- Left Dropdown: Add & Delete Menu -->
+        <div class="dropdown-menu left-menu" id="leftMenuDropdown">
+            <div class="menu-item" onclick="openModal('addMenuModal')"><i class="fa-solid fa-plus-circle" style="color: #16a34a;"></i> Add New Menu</div>
+            <div class="menu-item" onclick="openDeleteMenuModal()"><i class="fa-solid fa-trash-can" style="color: #dc2626;"></i> Delete Menu</div>
+        </div>
+
+        <!-- Right Dropdown: Printer, History, Login & Logout -->
+        <div class="dropdown-menu right-menu" id="rightMenuDropdown">
+            <div class="menu-item" onclick="openModal('printerModal')"><i class="fa-solid fa-print" style="color: #0284c7;"></i> Printer Options</div>
+            <div class="menu-item" onclick="openHistoryModal()"><i class="fa-solid fa-clock-rotate-left" style="color: #eab308;"></i> History</div>
+            <div class="menu-item" onclick="openModal('loginModal')"><i class="fa-solid fa-right-to-bracket" style="color: #16a34a;"></i> Login</div>
+            <div class="menu-item" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket" style="color: #dc2626;"></i> Logout</div>
+        </div>
+    </header>
+
+    <!-- Search Bar Below Header -->
+    <div class="header-search-container no-print">
+        <input type="text" id="globalMenuSearch" placeholder="🔍 Search menu items..." onkeyup="renderQuickMenuGrid()">
+    </div>
+
+    <!-- 1. HOME PAGE (CLEAN WELCOME) -->
+    <div id="homePage" class="page-tab active-tab">
+        <div class="card" style="text-align: center; padding: 50px 20px; margin-top: 15px;">
+            <i class="fa-solid fa-fire-flame-curved" style="font-size: 3.5rem; color: var(--primary); margin-bottom: 15px;"></i>
+            <h2 style="font-size: 1.4rem; color: var(--text-main); margin-bottom: 8px; font-weight: 700;" id="homeHotelTitleDisplay">Sawaji Hotel</h2>
+            <p style="font-size: 0.9rem; color: var(--text-muted);">Authentic Spicy Sawaji Taste!</p>
+        </div>
+    </div>
+
+    <!-- 2. MY PROFILE PAGE -->
+    <div id="profilePage" class="page-tab">
+        <div class="card">
+            <div class="card-title">Profile Management</div>
+            <div style="margin-bottom: 10px;"><label>Hotel Name</label><input type="text" id="profHotelName" value="Sawaji Hotel"></div>
+            <div style="margin-bottom: 10px;"><label>Owner Name</label><input type="text" id="profOwner" placeholder="e.g. Rahul"></div>
+            <div style="margin-bottom: 10px;"><label>Mobile Number</label><input type="text" id="profPhone" placeholder="9876543210"></div>
+            <div style="margin-bottom: 14px;"><label>Address</label><input type="text" id="profAddress" placeholder="Nagpur"></div>
+            <button class="btn btn-green" onclick="saveProfile()"><i class="fa-solid fa-save"></i> Save Profile</button>
+        </div>
+    </div>
+
+    <!-- 3. BILLING PAGE -->
+    <div id="billingPage" class="page-tab">
+        <div class="card">
+            <div class="card-title">Create New Bill</div>
+
+            <!-- Category Filter Scroll Bar (Includes Egg Section) -->
+            <label>Select Category:</label>
+            <div class="category-scroll">
+                <div class="cat-chip active" onclick="filterCategory('All', this)">All</div>
+                <div class="cat-chip" onclick="filterCategory('Starter', this)">Starter</div>
+                <div class="cat-chip" onclick="filterCategory('Veg', this)">Veg</div>
+                <div class="cat-chip" onclick="filterCategory('Egg', this)">Egg</div>
+                <div class="cat-chip" onclick="filterCategory('Chicken Non-Veg', this)">Chicken</div>
+                <div class="cat-chip" onclick="filterCategory('Mutton Non-Veg', this)">Mutton</div>
+                <div class="cat-chip" onclick="filterCategory('Rice/Roti', this)">Rice/Roti</div>
+            </div>
+
+            <!-- Quick Menu Grid -->
+            <div class="menu-grid" id="quickMenuGrid"></div>
+
+            <table class="simple-table">
+                <thead>
+                    <tr>
+                        <th>Item Name</th>
+                        <th>Rate (₹)</th>
+                        <th>Qty (kg/pcs)</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="cartTableBody"></tbody>
+            </table>
+
+            <div class="form-row" style="margin-top: 12px;">
+                <div>
+                    <label>Payment Type</label>
+                    <select id="payType">
+                        <option value="Cash">Cash (Left)</option>
+                        <option value="Online">Online (Right)</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Grand Total (₹)</label>
+                    <input type="number" id="grandTotal" placeholder="0" readonly style="font-weight: bold; color: var(--primary);">
+                </div>
+            </div>
+
+            <button class="btn btn-green" style="margin-top: 10px;" onclick="generateBill()">
+                <i class="fa-solid fa-print"></i> Save & Print Bill
+            </button>
+        </div>
+    </div>
+
+    <!-- 4. TRACKER PAGE -->
+    <div id="trackerPage" class="page-tab">
+        
+        <!-- Summary Difference Card -->
+        <div class="diff-summary-card">
+            <div class="diff-summary-row">
+                <div>Total Business: <span id="dispTotalBiz" style="color:#16a34a;">₹0</span></div>
+                <div>Net Cash: <span id="dispNetCash" style="color:#0284c7;">₹0</span></div>
+            </div>
+            <button class="btn btn-blue" style="padding: 8px; font-size: 0.8rem; margin-top: 6px;" onclick="printTrackerSummary()">
+                <i class="fa-solid fa-print"></i> Print Tracker Report
+            </button>
+        </div>
+
+        <!-- 2 Columns: Cash (Left) & Online (Right) -->
+        <div class="tracker-two-columns">
+            
+            <!-- LEFT COLUMN: CASH -->
+            <div class="tracker-col cash-col">
+                <h3>Cash (Left)</h3>
+                <div class="tracker-list-box" id="cashListContent"></div>
+                <div class="col-total-box">
+                    <span>Total Cash:</span>
+                    <span id="dispTotalCash" style="color:#16a34a;">₹0</span>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: ONLINE -->
+            <div class="tracker-col online-col">
+                <h3>Online (Right)</h3>
+                <div class="tracker-list-box" id="onlineListContent"></div>
+                <div class="col-total-box">
+                    <span>Total Online:</span>
+                    <span id="dispTotalOnline" style="color:#0284c7;">₹0</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Expense Input Card -->
+        <div class="card" style="border-left: 4px solid #dc2626;">
+            <div class="card-title" style="color: #dc2626;">Expense Entry (Kharch)</div>
+            <div class="form-row">
+                <div><label>Amount (₹)</label><input type="number" id="expAmt" placeholder="200"></div>
+                <div><label>Reason (e.g. Sugar)</label><input type="text" id="expReason" placeholder="Sugar"></div>
+            </div>
+            <button class="btn btn-red" onclick="addExpense()"><i class="fa-solid fa-minus-circle"></i> Deduct Expense</button>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="bottom-nav no-print">
+        <div class="nav-link active" onclick="switchTab('homePage', this)"><i class="fa-solid fa-house"></i><span>Home</span></div>
+        <div class="nav-link" onclick="switchTab('profilePage', this)"><i class="fa-solid fa-user"></i><span>Profile</span></div>
+        <div class="nav-link" onclick="switchTab('billingPage', this)"><i class="fa-solid fa-receipt"></i><span>Billing</span></div>
+        <div class="nav-link" onclick="switchTab('trackerPage', this)"><i class="fa-solid fa-chart-line"></i><span>Tracker</span></div>
     </nav>
 
-    <div class="search-container">
-        <input type="text" id="searchBar" placeholder="Search delicious food...">
-        <i class="fa-solid fa-search search-icon"></i>
-        <div id="searchResults" class="dropdown-content"></div>
-    </div>
+    <!-- MODALS -->
 
-    <div class="header-actions">
-        <button class="action-btn printer-btn" onclick="connectPrinter()">
-            <i class="fa-solid fa-print"></i>
-        </button>
-        <div class="menu-icon" onclick="toggleDropdown()">
-            <i class="fa-solid fa-ellipsis-vertical"></i>
-            <div id="dropdownMenu" class="dropdown-content">
-                <button onclick="toggleAuth(); closeDropdown();">🔐 Login / Logout</button>
-                <button onclick="openProfile(); closeDropdown();">👤 Profile</button>
-                <button onclick="openHistory(); closeDropdown();">🧾 Billing History</button>
-                <button onclick="openBluetooth(); closeDropdown();">🔵 Bluetooth Printer</button>
+    <!-- 1. Add Menu Modal -->
+    <div class="modal" id="addMenuModal">
+        <div class="modal-body">
+            <div class="card-title">Add New Menu</div>
+            
+            <div style="margin-bottom: 10px;">
+                <label>Item Name</label>
+                <input type="text" id="newMenuItemName" placeholder="e.g. Egg Curry">
+            </div>
+
+            <div style="margin-bottom: 10px;">
+                <label>Select Category</label>
+                <select id="newMenuItemCategory">
+                    <option value="Starter">Starter</option>
+                    <option value="Veg">Veg</option>
+                    <option value="Egg">Egg</option>
+                    <option value="Chicken Non-Veg">Chicken Non-Veg</option>
+                    <option value="Mutton Non-Veg">Mutton Non-Veg</option>
+                    <option value="Rice/Roti">Rice / Roti</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 10px;">
+                <label>Pricing Type</label>
+                <select id="newMenuPriceType">
+                    <option value="kg">Per Kg / Grams</option>
+                    <option value="fixed">Fixed Price / Plate</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 14px;">
+                <label>Rate / Price (₹)</label>
+                <input type="number" id="newMenuItemPrice" placeholder="e.g. 150">
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-gray" onclick="closeModal('addMenuModal')">Cancel</button>
+                <button class="btn btn-green" onclick="saveNewMenuItem()">Add Item</button>
             </div>
         </div>
     </div>
-</header>
-    <div class="container">
-        <div class="menu-section" id="menuContainer"></div>
-        <div class="billing-section">
-            <div class="billing-header">
-                <span>Current Order</span>
-                <i class="fa-solid fa-receipt"></i>
+
+    <!-- 2. Delete Menu Modal -->
+    <div class="modal" id="deleteMenuModal">
+        <div class="modal-body">
+            <div class="card-title">
+                <span>Delete Menu Items</span>
             </div>
-            <div class="cart-items" id="cartItems">
-                <div class="empty-cart">No items added yet. Click on menu items to add to order.</div>
+            
+            <div style="margin-bottom: 10px; padding-bottom:6px; border-bottom:1px solid var(--border-color); display:flex; align-items:center; gap:8px;">
+                <input type="checkbox" id="selectAllMenuItems" onchange="toggleSelectAllDeleteMenu(this)">
+                <label for="selectAllMenuItems" style="margin-bottom:0; cursor:pointer; font-weight:700; color:var(--primary);">Select All</label>
             </div>
-            <div class="billing-footer">
-                <div class="summary-row">
-                    <span>Total Amount:</span>
-                    <span id="grandTotal">₹0</span>
-                </div>
-                <button class="btn-print" onclick="printCurrentBill()">
-                    <i class="fa-solid fa-print"></i> Print Bill
-                </button>
+
+            <div id="deleteMenuList" style="max-height: 220px; overflow-y: auto; margin-bottom: 14px;"></div>
+
+            <div class="btn-group">
+                <button class="btn btn-gray" onclick="closeModal('deleteMenuModal')">Cancel</button>
+                <button class="btn btn-red" onclick="deleteSelectedMenuItems()">Delete Selected</button>
             </div>
         </div>
     </div>
 
-    <!-- Current bill print area: only this section is printed -->
-    <div id="printBill" class="print-bill"></div>
+    <!-- 3. History Modal -->
+    <div class="modal" id="historyModal">
+        <div class="modal-body">
+            <div class="card-title">
+                <i class="fa-solid fa-clock-rotate-left"></i> History Management
+            </div>
+            
+            <div style="max-height: 220px; overflow-y: auto; margin-bottom: 14px;">
+                <table class="simple-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 25px;">
+                                <input type="checkbox" id="selectAllHistory" onchange="toggleSelectAllHistory(this)">
+                            </th>
+                            <th>Details</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody"></tbody>
+                </table>
+            </div>
 
-    <!-- Login Modal -->
-    <div id="loginModal" class="modal">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h2>🔐 Login</h2>
-                <button class="close-btn" onclick="closeModal('loginModal')">✕</button>
+            <div class="btn-group">
+                <button class="btn btn-gray" onclick="closeModal('historyModal')">Cancel</button>
+                <button class="btn btn-red" onclick="deleteSelectedBills()"><i class="fa-solid fa-trash"></i> Delete Selected</button>
             </div>
-            <div class="form-group">
-                <label>Username</label>
-                <input id="loginUsername" type="text" placeholder="Enter username">
-            </div>
-            <div class="form-group">
-                <label>Password</label>
-                <input id="loginPassword" type="password" placeholder="Enter password">
-            </div>
-            <button class="modal-primary" onclick="loginUser()">Login</button>
         </div>
     </div>
 
-    <!-- Profile Modal -->
-    <div id="profileModal" class="modal">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h2>👤 Profile</h2>
-                <button class="close-btn" onclick="closeModal('profileModal')">✕</button>
-            </div>
-            <div class="form-group">
-                <label>Restaurant / User Name</label>
-                <input id="profileName" type="text" placeholder="Enter name">
-            </div>
-            <div class="form-group">
-                <label>Mobile Number</label>
-                <input id="profileMobile" type="text" placeholder="Enter mobile number">
-            </div>
-            <div class="form-group">
-                <label>Address</label>
-                <input id="profileAddress" type="text" placeholder="Enter address">
-            </div>
-            <button class="modal-primary" onclick="saveProfile()">Save Profile</button>
+    <!-- 4. Printer Options Modal -->
+    <div class="modal" id="printerModal">
+        <div class="modal-body">
+            <div class="card-title"><i class="fa-solid fa-print"></i> Bluetooth Thermal Printer</div>
+            <div id="btStatusMsg" style="font-size:0.8rem; color:#dc2626; margin-bottom:12px; font-weight:bold; text-align:center;">Not Connected</div>
+            <button class="btn btn-green" style="margin-bottom: 8px;" onclick="connectBluetooth()"><i class="fa-brands fa-bluetooth-b"></i> Pair & Connect Printer</button>
+            <button class="btn btn-blue" style="margin-bottom: 8px;" onclick="testPrint()"><i class="fa-solid fa-vial"></i> Send Test Print</button>
+            <button class="btn btn-gray" style="margin-bottom: 12px;" onclick="window.print()"><i class="fa-solid fa-print"></i> Browser Print Dialog</button>
+            <button class="btn btn-red" onclick="closeModal('printerModal')">Close</button>
         </div>
     </div>
 
-    <!-- Billing History Modal -->
-    <div id="historyModal" class="modal">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h2>🧾 Billing History</h2>
-                <button class="close-btn" onclick="closeModal('historyModal')">✕</button>
+    <!-- 5. Login Modal -->
+    <div class="modal" id="loginModal">
+        <div class="modal-body">
+            <div class="card-title"><i class="fa-solid fa-user-lock"></i> Admin Login</div>
+            <div style="margin-bottom: 10px;"><label>Username</label><input type="text" placeholder="admin"></div>
+            <div style="margin-bottom: 14px;"><label>Password</label><input type="password" placeholder="****"></div>
+            <div class="btn-group">
+                <button class="btn btn-gray" onclick="closeModal('loginModal')">Cancel</button>
+                <button class="btn btn-green" onclick="closeModal('loginModal'); alert('Login Successful!');">Login</button>
             </div>
-            <div id="historyList" class="history-list"></div>
         </div>
     </div>
 
-    <!-- Bluetooth Modal -->
-    <div id="bluetoothModal" class="modal">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h2>🔵 Bluetooth Printer</h2>
-                <button class="close-btn" onclick="closeModal('bluetoothModal')">✕</button>
+    <!-- 6. Print Receipt Modal -->
+    <div class="modal" id="printAreaModal">
+        <div class="modal-body">
+            <div id="printableReceiptsContent"></div>
+            <div class="no-print btn-group" style="margin-top: 15px;">
+                <button class="btn btn-gray" onclick="closeModal('printAreaModal')">Close</button>
+                <button class="btn btn-green" onclick="triggerDirectPrint()">Direct Bluetooth Print</button>
             </div>
-            <div id="bluetoothStatus" class="bluetooth-status">Printer not connected.</div>
-            <button class="modal-primary" onclick="connectPrinter()">Connect Bluetooth Printer</button>
         </div>
     </div>
 
     <script>
-        const menuData = [
-            {
-                category: "Starter", type: "starter", icon: "fa-sun",
-                items: [
-                    {name: "bisleri", full:20,half:null},
-                    { name: "papad R", full: 15, half: null },
-                    { name: " papad M", full: 25, half: null },
-                    { name: "papad F", full: 20, half: null }
-                    
-                ]
-            },
-            {
-                category: "Non Veg", type: "nonveg", icon: "fa-drumstick-bite",
-                items: [
-                    { name: "Chicken", full: 200, half: 100 },
-                    { name: "Chicken M", full: 200, half: 100 },
-                    { name: "Chicken L", full: 200, half: null },
-                    { name: "Chicken F", full: 200, half: null },
-                    { name: "Chicken S", full: 200, half: 100 },
-                    { name: "Chicken R", full: 200, half: null },
-                    { name: "Chicken handi", full: 700, half: 400 },
-                    { name: "Matan ", full: 240, half: 150 },
-                    { name: "Matan M", full: 250, half: 150 },
-                    { name: "Matan L", full: 250, half: null },
-                    { name: "Matan F", full: 250, half: null },
-                    { name: "Matan S", full: 250, half: 150 },
-                    { name: "Matan R", full: 250, half: null },
-                    { name: "Matan handi", full: 1200, half: 600 },
-                    { name: "Anda kari", full: 100, half: null },
-                    { name: "Anda M", full: 100, half: null },
-                    { name: "Anda burji", full: 90, half: null },
-                    { name: "Andaburjikari", full: 140, half: null }
-                ]
-            },
-            {
-                category: "Veg", type: "veg", icon: "fa-leaf",
-                items: [
-                    { name: "Panir kari", full: 160, half: 100 },
-                    { name: "Panir M", full: 160, half: 100 },
-                    { name: "Panir L", full: 200, half: null },
-                    { name: "Panir burji", full: 170, half: null },
-                    { name: "Panir burji kari", full: 200, half: null },
-                    { name: "Dal fry", full: 140, half: 80 },
-                    { name: "Dal tadaka", full: 140, half: 80 },
-                    { name: "Sev baji", full: 140, half: 80 },
-                    { name: "Jeera rice", full: 100, half: 50 },
-                    { name: "Plain rice", full: 90, half: 50 },
-                    { name: "Roti", full: 12, half: null },
-                    {name: "boil", full:15,half: null},
-                    { name: "Bhakar", full: 25, half: null }
-                ]
+        let btDevice = null;
+        let btCharacteristic = null;
+        let lastGeneratedReceipts = [];
+        let isTrackerPrintMode = false;
+        let lastTrackerPrintData = null;
+
+        let masterMenu = JSON.parse(localStorage.getItem('sawaji_master_menu')) || [
+            { id: 1, name: 'Chicken Chilli', category: 'Starter', priceType: 'fixed', rate: 220 },
+            { id: 2, name: 'Egg Masala', category: 'Egg', priceType: 'fixed', rate: 140 },
+            { id: 3, name: 'Special Chicken', category: 'Chicken Non-Veg', priceType: 'fixed', rate: 280 },
+            { id: 4, name: 'Mutton Sukka', category: 'Mutton Non-Veg', priceType: 'kg', rate: 600 },
+            { id: 5, name: 'Sev Bhaji', category: 'Veg', priceType: 'fixed', rate: 160 },
+            { id: 6, name: 'Jowar Bhakri', category: 'Rice/Roti', priceType: 'fixed', rate: 25 },
+            { id: 7, name: 'Jeera Rice', category: 'Rice/Roti', priceType: 'fixed', rate: 120 }
+        ];
+
+        let cart = [];
+        let billsData = JSON.parse(localStorage.getItem('sawaji_main_bills')) || [];
+        let profile = JSON.parse(localStorage.getItem('sawaji_main_profile')) || { hotelName: 'Sawaji Hotel', address: '' };
+        let activeCategoryFilter = 'All';
+
+        window.onclick = function(e) {
+            if (!e.target.closest('header')) {
+                document.getElementById('leftMenuDropdown').style.display = 'none';
+                document.getElementById('rightMenuDropdown').style.display = 'none';
             }
-        ];
+        };
 
-        let cart = {};
-        let bluetoothDevice = null;
-        let bluetoothServer = null;
-        let bluetoothCharacteristic = null;
-        let serialPort = null;
-        let serialWriter = null;
+        window.onload = function() {
+            loadProfileData();
+            renderQuickMenuGrid();
+            updateTrackerAndTables();
+            initializeRegistrationGate();
+        };
 
-        // BT-58D / Izo Printer
-        const PRINTER_NAME = "Izo Printer";
-        const PRINTER_BAUD_RATE = 9600;
 
-        // Common BLE thermal-printer service/characteristic UUIDs.
-        // The code also scans all discovered GATT services/characteristics,
-        // so it is not limited to one exact firmware UUID.
-        const COMMON_BLE_SERVICES = [
-            "0000ffe0-0000-1000-8000-00805f9b34fb",
-            "0000ffe5-0000-1000-8000-00805f9b34fb",
-            "000018f0-0000-1000-8000-00805f9b34fb",
-            "49535343-fe7d-4ae5-8fa9-9fafd205e455"
-        ];
+        function initializeRegistrationGate() {
+            const registration = JSON.parse(localStorage.getItem('sawaji_registration') || 'null');
 
-        function escapeQuotes(str) {
-            return str.replace(/'/g, "\\'");
-        }
+            if (registration && registration.registered === true) {
+                document.getElementById('registrationGate').classList.add('hidden');
 
-        function renderMenu() {
-            const menuContainer = document.getElementById("menuContainer");
-            menuContainer.innerHTML = "";
-
-            menuData.forEach(cat => {
-                const card = document.createElement("div");
-                card.className = "category-card";
-                let itemsHtml = "";
-
-                cat.items.forEach(item => {
-                    let priceBtns = "";
-
-                    if (item.half !== null) {
-                        priceBtns += `<button class="btn-add" onclick="addToCart('${escapeQuotes(item.name)}', 'Half', ${item.half})">
-                            <span>Half</span><strong>₹${item.half}</strong>
-                        </button>`;
-                    }
-
-                    priceBtns += `<button class="btn-add" onclick="addToCart('${escapeQuotes(item.name)}', 'Full', ${item.full})">
-                        <span>Full</span><strong>₹${item.full}</strong>
-                    </button>`;
-
-                    itemsHtml += `
-                        <div class="item-card">
-                            <div class="item-name">${item.name}</div>
-                            <div class="price-options">${priceBtns}</div>
-                        </div>`;
-                });
-
-                card.innerHTML = `
-                    <div class="category-title ${cat.type}">
-                        <i class="fa-solid ${cat.icon}"></i> ${cat.category}
-                    </div>
-                    <div class="items-grid">${itemsHtml}</div>`;
-
-                menuContainer.appendChild(card);
-            });
-        }
-
-        function addToCart(name, portion, price) {
-            const itemKey = `${name} (${portion})`;
-
-            if (cart[itemKey]) {
-                cart[itemKey].qty += 1;
+                // Always open the Home page after a registered user opens the file.
+                switchTab('homePage', document.querySelector('.nav-link'));
             } else {
-                cart[itemKey] = { name, portion, price, qty: 1 };
+                document.getElementById('registrationGate').classList.remove('hidden');
+                document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active-tab'));
+                document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
             }
-
-            updateCart();
         }
 
-        function updateQuantity(itemKey, change) {
-            if (cart[itemKey]) {
-                cart[itemKey].qty += change;
+        function completeRegistration() {
+            const owner = document.getElementById('regOwnerName').value.trim();
+            const mobile = document.getElementById('regMobile').value.trim();
+            const hotelName = document.getElementById('regHotelName').value.trim() || 'Sawaji Hotel';
+            const errorBox = document.getElementById('registrationError');
 
-                if (cart[itemKey].qty <= 0) {
-                    delete cart[itemKey];
-                }
-            }
-
-            updateCart();
-        }
-
-        function updateCart() {
-            const cartItemsContainer = document.getElementById("cartItems");
-            const grandTotalEl = document.getElementById("grandTotal");
-            const keys = Object.keys(cart);
-
-            if (keys.length === 0) {
-                cartItemsContainer.innerHTML =
-                    `<div class="empty-cart">No items added yet. Click on menu items to add to order.</div>`;
-                grandTotalEl.innerText = "₹0";
+            if (!owner) {
+                errorBox.textContent = 'Please enter owner name.';
+                errorBox.style.display = 'block';
                 return;
             }
 
-            let html = "";
-            let total = 0;
+            if (!/^\d{10}$/.test(mobile)) {
+                errorBox.textContent = 'Please enter a valid 10-digit mobile number.';
+                errorBox.style.display = 'block';
+                return;
+            }
 
-            keys.forEach(key => {
-                const item = cart[key];
-                const itemTotal = item.price * item.qty;
-                total += itemTotal;
-
-                html += `
-                    <div class="cart-item">
-                        <div class="cart-item-info">
-                            <div class="cart-item-title">${item.name} (${item.portion})</div>
-                            <div class="cart-item-price">₹${item.price} × ${item.qty} = ₹${itemTotal}</div>
-                        </div>
-                        <div class="qty-controls">
-                            <button class="qty-btn" onclick="updateQuantity('${escapeQuotes(key)}', -1)">−</button>
-                            <span>${item.qty}</span>
-                            <button class="qty-btn" onclick="updateQuantity('${escapeQuotes(key)}', 1)">+</button>
-                        </div>
-                    </div>`;
-            });
-
-            cartItemsContainer.innerHTML = html;
-            grandTotalEl.innerText = `₹${total}`;
-        }
-
-        function getCartTotal() {
-            return Object.values(cart).reduce((sum, item) => sum + (item.price * item.qty), 0);
-        }
-
-        function generateBillNumber() {
-            return "SV-" + Date.now().toString().slice(-8);
-        }
-
-        function saveBillToHistory(billNumber, dateText) {
-            const items = Object.values(cart).map(item => ({
-                name: item.name,
-                portion: item.portion,
-                price: item.price,
-                qty: item.qty,
-                total: item.price * item.qty
+            localStorage.setItem('sawaji_registration', JSON.stringify({
+                registered: true,
+                owner: owner,
+                mobile: mobile,
+                hotelName: hotelName,
+                registeredAt: new Date().toISOString()
             }));
 
-            const bill = {
-                billNumber,
-                date: dateText,
-                total: getCartTotal(),
-                items
-            };
+            // Keep the existing profile system in sync with registration.
+            profile.hotelName = hotelName;
+            profile.owner = owner;
+            profile.phone = mobile;
+            localStorage.setItem('sawaji_main_profile', JSON.stringify(profile));
 
-            const history = JSON.parse(localStorage.getItem("savajiBillingHistory") || "[]");
-            history.unshift(bill);
-            localStorage.setItem("savajiBillingHistory", JSON.stringify(history.slice(0, 100)));
+            document.getElementById('registrationGate').classList.add('hidden');
+            loadProfileData();
+            switchTab('homePage', document.querySelector('.nav-link'));
+            alert('Registration successful! Welcome to Sawaji Hotel.');
         }
 
-        async function printCurrentBill() {
-            const keys = Object.keys(cart);
-
-            if (keys.length === 0) {
-                alert("पहले Current Order में item select करें।");
-                return;
-            }
-
-            const now = new Date();
-            const billNumber = generateBillNumber();
-            const dateText = now.toLocaleString("en-IN");
-
-            let total = 0;
-            const items = keys.map(key => {
-                const item = cart[key];
-                const itemTotal = item.price * item.qty;
-                total += itemTotal;
-                return { ...item, total: itemTotal };
-            });
-
-            // Keep the existing on-screen bill area updated. Printing is done directly through ESC/POS.
-            document.getElementById("printBill").innerHTML = `
-                <div class="print-header">
-                    <h1>Savaji Restaurant</h1>
-                    <p>Restaurant Billing Receipt</p>
-                </div>
-                <div class="print-meta">
-                    <span><strong>Bill No:</strong> ${billNumber}</span>
-                    <span><strong>Date:</strong> ${dateText}</span>
-                </div>
-                <table class="print-table">
-                    <thead>
-                        <tr>
-                            <th>Item</th>
-                            <th>Qty</th>
-                            <th>Price</th>
-                            <th>Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${items.map(item => `
-                            <tr>
-                                <td>${item.name} (${item.portion})</td>
-                                <td>${item.qty}</td>
-                                <td>₹${item.price}</td>
-                                <td>₹${item.total}</td>
-                            </tr>`).join("")}
-                    </tbody>
-                </table>
-                <div class="print-total">
-                    <span>Grand Total</span>
-                    <span>₹${total}</span>
-                </div>
-                <div class="print-footer">Thank you for visiting Savaji Restaurant!</div>
-            `;
-
-            const button = document.querySelector(".btn-print");
-            const oldText = button ? button.innerHTML : "";
-            if (button) {
-                button.disabled = true;
-                button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Printing...';
-            }
-
-            try {
-                // First use an already-connected printer.
-                if (serialPort && serialWriter) {
-                    await printReceiptToSerial(serialPort, items, total, billNumber, dateText);
-                } else if (bluetoothCharacteristic) {
-                    await printReceiptToBluetooth(items, total, billNumber, dateText);
-                } else {
-                    // One click can request either BLE or Serial permission.
-                    // BLE is attempted first; if it is not usable, Serial is tried.
-                    const connected = await ensurePrinterConnection();
-                    if (!connected) {
-                        throw new Error("No compatible printer connection was established.");
-                    }
-
-                    if (serialPort && serialWriter) {
-                        await printReceiptToSerial(serialPort, items, total, billNumber, dateText);
-                    } else if (bluetoothCharacteristic) {
-                        await printReceiptToBluetooth(items, total, billNumber, dateText);
-                    } else {
-                        throw new Error("Printer connected but no writable printer channel was found.");
-                    }
-                }
-
-                // Save only after the receipt was successfully sent.
-                saveBillToHistory(billNumber, dateText);
-
-                // Clear the current order after successful printing.
-                cart = {};
-                updateCart();
-
-                alert("Bill printed successfully on " + PRINTER_NAME + ".");
-            } catch (error) {
-                console.error("Print error:", error);
-                alert(
-                    "Print nahi hua.\n\n" +
-                    "Printer 'Izo Printer' ON aur Windows Bluetooth me paired rakhen. " +
-                    "Agar printer COM port ke roop me paired hai to Serial option use hoga.\n\n" +
-                    "Error: " + (error.message || error)
-                );
-            } finally {
-                if (button) {
-                    button.disabled = false;
-                    button.innerHTML = oldText;
-                }
-            }
+        function toggleMenu(menuId, e) {
+            e.stopPropagation();
+            let otherId = menuId === 'leftMenuDropdown' ? 'rightMenuDropdown' : 'leftMenuDropdown';
+            document.getElementById(otherId).style.display = 'none';
+            let target = document.getElementById(menuId);
+            target.style.display = target.style.display === 'block' ? 'none' : 'block';
         }
 
-        function escPosText(text) {
-            // Thermal printers commonly accept ASCII reliably.
-            // Convert the rupee sign to Rs. to avoid unsupported-glyph output.
-            return String(text).replace(/₹/g, "Rs.");
-        }
+        function switchTab(tabId, el) {
+            document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active-tab'));
+            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active-tab');
+            if (el) el.classList.add('active');
 
-        function padRight(text, length) {
-            text = String(text);
-            return text.length >= length ? text.slice(0, length) : text + " ".repeat(length - text.length);
-        }
-
-        function padLeft(text, length) {
-            text = String(text);
-            return text.length >= length ? text.slice(0, length) : " ".repeat(length - text.length) + text;
-        }
-
-        function fitItemName(name, maxLength) {
-            name = String(name);
-            return name.length <= maxLength ? name : name.slice(0, Math.max(0, maxLength - 1)) + "…";
-        }
-
-        function buildReceiptBytes(items, total, billNumber, dateText) {
-            // 58mm / 32-column ESC/POS receipt.
-            const WIDTH = 32;
-            const lines = [];
-
-            lines.push("\x1b@");                 // Initialize printer
-            lines.push("\x1ba\x01");            // Center
-            lines.push("\x1b!\x08");            // Bold
-            lines.push("SAVAJI RESTAURANT\n");
-            lines.push("\x1b!\x00");
-            lines.push("Restaurant Billing Receipt\n");
-            lines.push("--------------------------------\n");
-
-            lines.push("\x1ba\x00");             // Left
-            lines.push("Bill No: " + billNumber + "\n");
-            lines.push("Date: " + dateText + "\n");
-            lines.push("--------------------------------\n");
-
-            // 32 columns: item 18 + qty 4 + amount 10
-            lines.push(
-                padRight("Item", 18) +
-                padLeft("Qty", 4) +
-                padLeft("Amount", 10) + "\n"
-            );
-            lines.push("--------------------------------\n");
-
-            items.forEach(item => {
-                const itemName = fitItemName(
-                    escPosText(item.name) + " (" + escPosText(item.portion) + ")",
-                    18
-                );
-                const amount = "Rs." + item.total;
-                lines.push(
-                    padRight(itemName, 18) +
-                    padLeft(item.qty, 4) +
-                    padLeft(amount, 10) + "\n"
-                );
-            });
-
-            lines.push("--------------------------------\n");
-            lines.push("\x1b!\x08");
-            lines.push(padRight("GRAND TOTAL", 18) + padLeft("Rs." + total, 14) + "\n");
-            lines.push("\x1b!\x00");
-            lines.push("\n");
-            lines.push("\x1ba\x01");
-            lines.push("Thank you for visiting!\n");
-            lines.push("Savaji Restaurant\n");
-            lines.push("\n\n\n");
-            lines.push("\x1dV\x00");            // Full cut, if supported
-
-            return new TextEncoder().encode(lines.join(""));
-        }
-
-        async function writeChunked(writer, bytes, chunkSize = 180) {
-            for (let i = 0; i < bytes.length; i += chunkSize) {
-                await writer.write(bytes.slice(i, i + chunkSize));
-                await new Promise(resolve => setTimeout(resolve, 12));
-            }
-        }
-
-        async function printReceiptToSerial(port, items, total, billNumber, dateText) {
-            if (!port.writable) {
-                throw new Error("Serial printer port is not writable.");
-            }
-
-            if (!serialWriter) {
-                serialWriter = port.writable.getWriter();
-            }
-
-            const bytes = buildReceiptBytes(items, total, billNumber, dateText);
-            await writeChunked(serialWriter, bytes);
-        }
-
-        async function printReceiptToBluetooth(items, total, billNumber, dateText) {
-            if (!bluetoothCharacteristic) {
-                throw new Error("Bluetooth printer write characteristic is unavailable.");
-            }
-
-            const bytes = buildReceiptBytes(items, total, billNumber, dateText);
-
-            // BLE characteristics usually have small packet limits.
-            const chunkSize = bluetoothCharacteristic.properties.writeWithoutResponse ? 180 : 20;
-
-            for (let i = 0; i < bytes.length; i += chunkSize) {
-                const chunk = bytes.slice(i, i + chunkSize);
-
-                if (bluetoothCharacteristic.properties.writeWithoutResponse &&
-                    bluetoothCharacteristic.writeValueWithoutResponse) {
-                    await bluetoothCharacteristic.writeValueWithoutResponse(chunk);
-                } else {
-                    await bluetoothCharacteristic.writeValue(chunk);
-                }
-
-                await new Promise(resolve => setTimeout(resolve, 25));
-            }
-        }
-
-        async function findWritableBluetoothCharacteristic(server) {
-            const services = await server.getPrimaryServices();
-
-            for (const service of services) {
-                const characteristics = await service.getCharacteristics();
-
-                for (const characteristic of characteristics) {
-                    const p = characteristic.properties || {};
-                    if (p.writeWithoutResponse || p.write) {
-                        return characteristic;
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        async function connectBluetoothPrinter(showAlerts = false) {
-            if (!navigator.bluetooth) {
-                if (showAlerts) {
-                    alert("Web Bluetooth उपलब्ध नहीं है. Chrome/Edge में try करें.");
-                }
-                return false;
-            }
-
-            const status = document.getElementById("bluetoothStatus");
-
-            try {
-                if (status) status.innerText = "Bluetooth printer खोज रहे हैं...";
-
-                bluetoothDevice = await navigator.bluetooth.requestDevice({
-                    acceptAllDevices: true,
-                    optionalServices: COMMON_BLE_SERVICES
-                });
-
-                if (!bluetoothDevice) {
-                    throw new Error("Bluetooth device was not selected.");
-                }
-
-                if (status) status.innerText = "Connecting to " + (bluetoothDevice.name || PRINTER_NAME) + "...";
-
-                bluetoothServer = bluetoothDevice.gatt
-                    ? await bluetoothDevice.gatt.connect()
-                    : null;
-
-                if (!bluetoothServer) {
-                    throw new Error("This Bluetooth device does not expose GATT/BLE.");
-                }
-
-                bluetoothCharacteristic = await findWritableBluetoothCharacteristic(bluetoothServer);
-
-                if (!bluetoothCharacteristic) {
-                    throw new Error("No writable BLE characteristic found.");
-                }
-
-                bluetoothDevice.addEventListener("gattserverdisconnected", () => {
-                    bluetoothServer = null;
-                    bluetoothCharacteristic = null;
-                    if (status) status.innerText = "Bluetooth printer disconnected.";
-                });
-
-                if (status) {
-                    status.innerText = "Connected: " + (bluetoothDevice.name || PRINTER_NAME);
-                }
-
-                return true;
-            } catch (error) {
-                console.warn("BLE printer connection failed:", error);
-                bluetoothCharacteristic = null;
-                bluetoothServer = null;
-                if (status) status.innerText = "BLE connection unavailable.";
-                return false;
-            }
-        }
-
-        async function connectSerialPrinter(showAlerts = false) {
-            if (!("serial" in navigator)) {
-                if (showAlerts) {
-                    alert("Web Serial उपलब्ध नहीं है. Chrome/Edge का latest version use करें.");
-                }
-                return false;
-            }
-
-            try {
-                const port = await navigator.serial.requestPort();
-                await port.open({ baudRate: PRINTER_BAUD_RATE });
-
-                serialPort = port;
-                serialWriter = serialPort.writable ? serialPort.writable.getWriter() : null;
-
-                if (!serialWriter) {
-                    throw new Error("Selected serial port is not writable.");
-                }
-
-                const status = document.getElementById("bluetoothStatus");
-                if (status) status.innerText = "Connected by Serial/COM at 9600 baud.";
-
-                return true;
-            } catch (error) {
-                console.warn("Serial printer connection failed:", error);
-                serialPort = null;
-                serialWriter = null;
-                return false;
-            }
-        }
-
-        async function ensurePrinterConnection() {
-            // Try BLE first. If the printer is a Bluetooth Classic/SPP device,
-            // Chrome exposes it as a serial COM port instead, so try Web Serial.
-            const bleConnected = await connectBluetoothPrinter(false);
-            if (bleConnected) return true;
-
-            const serialConnected = await connectSerialPrinter(false);
-            if (serialConnected) return true;
-
-            return false;
-        }
-
-        async function connectPrinter() {
-            const status = document.getElementById("bluetoothStatus");
-
-            if (status) {
-                status.innerText = "Izo Printer connection सुरू आहे...";
-            }
-
-            // Try BLE first, then COM/Serial.
-            const bleConnected = await connectBluetoothPrinter(false);
-            if (bleConnected) {
-                alert("Izo Printer Bluetooth/BLE connected successfully.");
-                return;
-            }
-
-            const serialConnected = await connectSerialPrinter(false);
-            if (serialConnected) {
-                alert("Izo Printer Serial/COM connected successfully.");
-                return;
-            }
-
-            if (status) {
-                status.innerText = "Printer connect झाला नाही.";
-            }
-
-            alert(
-                "Izo Printer connect झाला नाही.\n\n" +
-                "1) Printer ON करा.\n" +
-                "2) Windows Bluetooth मध्ये 'Izo Printer' pair करा.\n" +
-                "3) पुन्हा printer button दाबा.\n\n" +
-                "जर तो Bluetooth Classic printer असेल तर Windows ने त्याला COM port दिलेला असणे आवश्यक आहे."
-            );
-        }
-
-        function toggleDropdown() {
-            document.getElementById("dropdownMenu").classList.toggle("show");
-        }
-
-        function closeDropdown() {
-            document.getElementById("dropdownMenu").classList.remove("show");
-        }
-
-        document.addEventListener("click", function(event) {
-            const menuIcon = document.querySelector(".menu-icon");
-            const dropdown = document.getElementById("dropdownMenu");
-
-            if (dropdown && menuIcon && !menuIcon.contains(event.target)) {
-                dropdown.classList.remove("show");
-            }
-        });
-
-        function toggleAuth() {
-            const loggedIn = localStorage.getItem("savajiLoggedIn") === "true";
-
-            if (loggedIn) {
-                if (confirm("Logout करना है?")) {
-                    localStorage.removeItem("savajiLoggedIn");
-                    alert("Logout successful.");
-                }
+            let hdrTitle = document.getElementById('hdrTitle');
+            if (tabId === 'homePage') {
+                hdrTitle.innerHTML = `<i class="fa-solid fa-utensils"></i> ${profile.hotelName || 'Sawaji Hotel'}`;
             } else {
-                openModal("loginModal");
-            }
-        }
-
-        function loginUser() {
-            const username = document.getElementById("loginUsername").value.trim();
-            const password = document.getElementById("loginPassword").value.trim();
-
-            if (!username || !password) {
-                alert("Username और Password दोनों भरें।");
-                return;
-            }
-
-            localStorage.setItem("savajiLoggedIn", "true");
-            localStorage.setItem("savajiUsername", username);
-            closeModal("loginModal");
-            alert("Login successful.");
-        }
-
-        function openProfile() {
-            const profile = JSON.parse(localStorage.getItem("savajiProfile") || "{}");
-
-            document.getElementById("profileName").value = profile.name || "";
-            document.getElementById("profileMobile").value = profile.mobile || "";
-            document.getElementById("profileAddress").value = profile.address || "";
-
-            openModal("profileModal");
-        }
-
-        function saveProfile() {
-            const profile = {
-                name: document.getElementById("profileName").value.trim(),
-                mobile: document.getElementById("profileMobile").value.trim(),
-                address: document.getElementById("profileAddress").value.trim()
-            };
-
-            localStorage.setItem("savajiProfile", JSON.stringify(profile));
-            closeModal("profileModal");
-            alert("Profile saved successfully.");
-        }
-
-        function openHistory() {
-            const history = JSON.parse(localStorage.getItem("savajiBillingHistory") || "[]");
-            const list = document.getElementById("historyList");
-
-            if (history.length === 0) {
-                list.innerHTML = `<div class="empty-cart">No billing history found.</div>`;
-            } else {
-                list.innerHTML = history.map(bill => `
-                    <div class="history-item">
-                        <strong>${bill.billNumber} — ₹${bill.total}</strong>
-                        <small>${bill.date}</small>
-                        <div style="margin-top:7px;font-size:.85rem;">
-                            ${bill.items.map(item => `${item.name} (${item.portion}) × ${item.qty}`).join(", ")}
-                        </div>
-                    </div>
-                `).join("");
-            }
-
-            openModal("historyModal");
-        }
-
-        function openBluetooth() {
-            openModal("bluetoothModal");
-        }
-
-        async function connectPrinter() {
-            const status = document.getElementById("bluetoothStatus");
-
-            if (!navigator.bluetooth) {
-                alert("इस browser में Web Bluetooth supported नहीं है। Chrome/Edge में HTTPS या localhost पर try करें।");
-                if (status) status.innerText = "Web Bluetooth not supported in this browser.";
-                return;
-            }
-
-            try {
-                status.innerText = "Searching for Bluetooth devices...";
-
-                bluetoothDevice = await navigator.bluetooth.requestDevice({
-                    acceptAllDevices: true
-                });
-
-                status.innerText = "Connected/selected: " + bluetoothDevice.name;
-                alert("Bluetooth printer/device selected: " + bluetoothDevice.name);
-            } catch (error) {
-                status.innerText = "Printer connection cancelled or unavailable.";
-                console.log(error);
+                hdrTitle.innerHTML = ``;
             }
         }
 
         function openModal(id) {
-            document.getElementById(id).classList.add("show");
+            document.getElementById('leftMenuDropdown').style.display = 'none';
+            document.getElementById('rightMenuDropdown').style.display = 'none';
+            document.getElementById(id).style.display = 'flex';
         }
 
         function closeModal(id) {
-            document.getElementById(id).classList.remove("show");
+            document.getElementById(id).style.display = 'none';
         }
 
-        window.addEventListener("click", function(event) {
-            document.querySelectorAll(".modal").forEach(modal => {
-                if (event.target === modal) {
-                    modal.classList.remove("show");
-                }
+        function openHistoryModal() {
+            updateTrackerAndTables();
+            openModal('historyModal');
+        }
+
+        function handleLogout() {
+            if(confirm('Are you sure you want to logout?')) {
+                alert('Logged out successfully!');
+                document.getElementById('rightMenuDropdown').style.display = 'none';
+            }
+        }
+
+        function filterCategory(category, el) {
+            activeCategoryFilter = category;
+            document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+            if(el) el.classList.add('active');
+            renderQuickMenuGrid();
+        }
+
+        function renderQuickMenuGrid() {
+            let container = document.getElementById('quickMenuGrid');
+            container.innerHTML = '';
+            let searchQuery = document.getElementById('globalMenuSearch').value.toLowerCase().trim();
+
+            let filteredItems = masterMenu.filter(item => {
+                let matchesCategory = (activeCategoryFilter === 'All') || (item.category === activeCategoryFilter);
+                let matchesSearch = item.name.toLowerCase().includes(searchQuery) || (item.category && item.category.toLowerCase().includes(searchQuery));
+                return matchesCategory && matchesSearch;
             });
-        });
 
-        // Food search
-        document.getElementById("searchBar").addEventListener("input", function() {
-            const query = this.value.trim().toLowerCase();
-            const results = document.getElementById("searchResults");
-
-            if (!query) {
-                results.classList.remove("show");
-                results.innerHTML = "";
+            if (filteredItems.length === 0) {
+                container.innerHTML = `<div style="grid-column: span 3; text-align:center; color:#94a3b8; padding:15px; font-size:0.8rem;">No items found!</div>`;
                 return;
             }
 
-            const matches = [];
-            menuData.forEach(cat => {
-                cat.items.forEach(item => {
-                    if (item.name.toLowerCase().includes(query)) {
-                        matches.push({
-                            ...item,
-                            category: cat.category
-                        });
-                    }
-                });
-            });
-
-            if (!matches.length) {
-                results.innerHTML = `<div class="search-result-item">No food found</div>`;
-            } else {
-                results.innerHTML = matches.slice(0, 8).map(item => `
-                    <div class="search-result-item" onclick="selectSearchItem('${escapeQuotes(item.name)}')">
-                        <strong>${item.name}</strong>
-                        <small style="display:block;color:#64748b;">${item.category} · ₹${item.full}</small>
+            filteredItems.forEach(item => {
+                let rateLabel = item.priceType === 'kg' ? `₹${item.rate}/kg` : `₹${item.rate}`;
+                container.innerHTML += `
+                    <div class="menu-btn" onclick="addToCart('${item.name}', ${item.rate}, '${item.priceType || 'fixed'}')">
+                        <div>
+                            <span class="name">${item.name}</span>
+                            <span class="cat-tag">${item.category || ''}</span>
+                        </div>
+                        <span class="rate">${rateLabel}</span>
                     </div>
-                `).join("");
-            }
-
-            results.classList.add("show");
-        });
-
-        function selectSearchItem(name) {
-            const target = [...document.querySelectorAll(".item-card")].find(card =>
-                card.querySelector(".item-name")?.innerText.toLowerCase() === name.toLowerCase()
-            );
-
-            if (target) {
-                target.scrollIntoView({ behavior:"smooth", block:"center" });
-                target.style.outline = "3px solid #d97706";
-                setTimeout(() => target.style.outline = "", 1500);
-            }
-
-            document.getElementById("searchResults").classList.remove("show");
+                `;
+            });
         }
 
-        document.addEventListener("click", function(event) {
-            const searchBox = document.querySelector(".search-container");
-            if (searchBox && !searchBox.contains(event.target)) {
-                document.getElementById("searchResults").classList.remove("show");
+        function addToCart(name, rate, priceType) {
+            let existing = cart.find(i => i.name === name);
+            if (existing) {
+                existing.qty += (priceType === 'kg' ? 1.0 : 1);
+            } else {
+                cart.push({ name, rate, priceType, qty: (priceType === 'kg' ? 1.0 : 1) });
             }
-        });
+            renderCart();
+        }
 
-        renderMenu();
-        updateCart();
+        function renderCart() {
+            let tbody = document.getElementById('cartTableBody');
+            tbody.innerHTML = '';
+            let total = 0;
+
+            cart.forEach((item, index) => {
+                let itemTotal = item.rate * item.qty;
+                total += itemTotal;
+                
+                let stepVal = item.priceType === 'kg' ? '0.1' : '1';
+                let minVal = item.priceType === 'kg' ? '0.1' : '1';
+                let unitLabel = item.priceType === 'kg' ? 'kg' : 'pcs';
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${item.name}</td>
+                        <td>₹${item.rate}${item.priceType === 'kg' ? '/kg' : ''}</td>
+                        <td>
+                            <input type="number" step="${stepVal}" min="${minVal}" value="${item.qty}" style="width: 65px; padding: 2px 4px; font-size: 0.8rem;" onchange="updateCartQty(${index}, this.value)"> ${unitLabel}
+                        </td>
+                        <td><i class="fa-solid fa-trash" style="color:#dc2626; cursor:pointer;" onclick="removeFromCart(${index})"></i></td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('grandTotal').value = total.toFixed(2);
+        }
+
+        function updateCartQty(index, newQty) {
+            let val = parseFloat(newQty);
+            if (isNaN(val) || val <= 0) val = 1;
+            cart[index].qty = val;
+            renderCart();
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            renderCart();
+        }
+
+        function saveNewMenuItem() {
+            let name = document.getElementById('newMenuItemName').value.trim();
+            let category = document.getElementById('newMenuItemCategory').value;
+            let priceType = document.getElementById('newMenuPriceType').value;
+            let price = parseFloat(document.getElementById('newMenuItemPrice').value);
+
+            if (!name || !price || price <= 0) return alert('Please enter valid item name and rate!');
+
+            masterMenu.push({ id: Date.now(), name: name, category: category, priceType: priceType, rate: price });
+            localStorage.setItem('sawaji_master_menu', JSON.stringify(masterMenu));
+
+            renderQuickMenuGrid();
+            document.getElementById('newMenuItemName').value = '';
+            document.getElementById('newMenuItemPrice').value = '';
+            closeModal('addMenuModal');
+        }
+
+        function openDeleteMenuModal() {
+            let list = document.getElementById('deleteMenuList');
+            list.innerHTML = '';
+            masterMenu.forEach(item => {
+                let rLbl = item.priceType === 'kg' ? `₹${item.rate}/kg` : `₹${item.rate}`;
+                list.innerHTML += `
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #f8fafc;">
+                        <div>
+                            <input type="checkbox" class="del-menu-chk" value="${item.id}">
+                            <span style="font-size:0.8rem; margin-left:6px; font-weight:500;">${item.name} (${rLbl})</span>
+                        </div>
+                    </div>
+                `;
+            });
+            openModal('deleteMenuModal');
+        }
+
+        function toggleSelectAllDeleteMenu(chk) {
+            document.querySelectorAll('.del-menu-chk').forEach(c => c.checked = chk.checked);
+        }
+
+        function deleteSelectedMenuItems() {
+            let chks = document.querySelectorAll('.del-menu-chk:checked');
+            if (chks.length === 0) return alert('Please select at least one menu item!');
+
+            let idsToDelete = Array.from(chks).map(c => Number(c.value));
+            masterMenu = masterMenu.filter(item => !idsToDelete.includes(item.id));
+            localStorage.setItem('sawaji_master_menu', JSON.stringify(masterMenu));
+
+            renderQuickMenuGrid();
+            closeModal('deleteMenuModal');
+        }
+
+        function generateBill() {
+            if (cart.length === 0) return alert('Cart is empty!');
+
+            let payType = document.getElementById('payType').value;
+            let grandTotal = parseFloat(document.getElementById('grandTotal').value);
+            
+            let today = new Date();
+            let formattedDate = today.toLocaleDateString('en-GB') + ' ' + today.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            let billRecord = {
+                id: Date.now().toString().slice(-6),
+                date: formattedDate,
+                items: [...cart],
+                total: grandTotal,
+                payType: payType,
+                type: 'bill'
+            };
+
+            billsData.push(billRecord);
+            localStorage.setItem('sawaji_main_bills', JSON.stringify(billsData));
+
+            isTrackerPrintMode = false;
+            showReceiptModal([billRecord]);
+
+            cart = [];
+            renderCart();
+            updateTrackerAndTables();
+
+            if (btCharacteristic) {
+                printDirectESC([billRecord]);
+            }
+        }
+
+        function showReceiptModal(records) {
+            isTrackerPrintMode = false;
+            lastGeneratedReceipts = records;
+            let content = document.getElementById('printableReceiptsContent');
+            content.innerHTML = '';
+
+            records.forEach(rec => {
+                if (rec.type === 'expense') return;
+                let itemsHtml = rec.items.map(i => {
+                    let unitStr = i.priceType === 'kg' ? `${i.qty}kg` : `x${i.qty}`;
+                    return `${i.name} (${unitStr}) = ₹${(i.rate * i.qty).toFixed(2)}`;
+                }).join('<br>');
+
+                content.innerHTML += `
+                    <div class="receipt-text" style="text-align:center; border-bottom:1px dashed #000; padding-bottom:10px; margin-bottom:10px;">
+                        <h3>${profile.hotelName || 'Sawaji Hotel'}</h3>
+                        <hr style="margin:5px 0;">
+                        <div style="text-align:left;">
+                            <p><strong>Date :</strong> ${rec.date}</p>
+                            <p><strong>Type :</strong> ${rec.payType}</p>
+                            <hr style="margin:5px 0;">
+                            ${itemsHtml}
+                            <hr style="margin:5px 0;">
+                            <p><strong>Total: ₹${rec.total.toFixed(2)}</strong></p>
+                        </div>
+                    </div>
+                `;
+            });
+
+            openModal('printAreaModal');
+        }
+
+        function printTrackerSummary() {
+            isTrackerPrintMode = true;
+            let totalCash = 0;
+            let totalOnline = 0;
+            let totalExpense = 0;
+            let expensesListHtml = '';
+
+            billsData.forEach(item => {
+                if (item.type === 'expense') {
+                    totalExpense += item.total;
+                    expensesListHtml += `<p style="padding-left:10px;">- ${item.reason} : ₹${item.total}</p>`;
+                } else if (item.payType === 'Cash') {
+                    totalCash += item.total;
+                } else if (item.payType === 'Online') {
+                    totalOnline += item.total;
+                }
+            });
+
+            if(!expensesListHtml) {
+                expensesListHtml = '<p style="padding-left:10px; color:#64748b;">(No expenses recorded)</p>';
+            }
+
+            let totalBiz = totalCash + totalOnline;
+            let netCash = totalCash - totalExpense;
+
+            lastTrackerPrintData = {
+                totalCash,
+                totalOnline,
+                totalExpense,
+                totalBiz,
+                netCash
+            };
+
+            let todayStr = new Date().toLocaleDateString('en-GB') + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            let content = document.getElementById('printableReceiptsContent');
+            content.innerHTML = `
+                <div class="receipt-text" style="text-align:center; padding-bottom:10px;">
+                    <h3>${profile.hotelName || 'Sawaji Hotel'}</h3>
+                    <p>*** DAILY TRACKER REPORT ***</p>
+                    <p>${todayStr}</p>
+                    <hr style="margin:8px 0;">
+                    <div style="text-align:left; font-size:0.85rem;">
+                        <p>Total Cash In  : ₹${totalCash}</p>
+                        <p>Total Online   : ₹${totalOnline}</p>
+                        <hr style="margin:5px 0;">
+                        <p><strong>EXPENSE DETAILS:</strong></p>
+                        ${expensesListHtml}
+                        <p style="margin-top:4px;"><strong>Total Expense  : ₹${totalExpense}</strong></p>
+                        <hr style="margin:5px 0;">
+                        <p><strong>TOTAL BUSINESS : ₹${totalBiz}</strong></p>
+                        <p><strong>NET CASH HAND  : ₹${netCash}</strong></p>
+                    </div>
+                    <hr style="margin:8px 0;">
+                </div>
+            `;
+
+            openModal('printAreaModal');
+
+            if (btCharacteristic) {
+                printDirectTrackerESC(totalCash, totalOnline, totalExpense, totalBiz, netCash);
+            }
+        }
+
+        async function triggerDirectPrint() {
+            if (isTrackerPrintMode) {
+                if (lastTrackerPrintData && btCharacteristic) {
+                    await printDirectTrackerESC(
+                        lastTrackerPrintData.totalCash,
+                        lastTrackerPrintData.totalOnline,
+                        lastTrackerPrintData.totalExpense,
+                        lastTrackerPrintData.totalBiz,
+                        lastTrackerPrintData.netCash
+                    );
+                } else {
+                    window.print();
+                }
+            } else if (btCharacteristic) {
+                await printDirectESC(lastGeneratedReceipts);
+            } else {
+                window.print();
+            }
+        }
+
+        function saveProfile() {
+            profile.hotelName = document.getElementById('profHotelName').value;
+            profile.owner = document.getElementById('profOwner').value;
+            profile.phone = document.getElementById('profPhone').value;
+            profile.address = document.getElementById('profAddress').value;
+
+            localStorage.setItem('sawaji_main_profile', JSON.stringify(profile));
+            alert('Profile saved successfully!');
+
+            document.getElementById('homeHotelTitleDisplay').innerText = profile.hotelName || 'Sawaji Hotel';
+            if (document.getElementById('homePage').classList.contains('active-tab')) {
+                document.getElementById('hdrTitle').innerHTML = `<i class="fa-solid fa-utensils"></i> ${profile.hotelName}`;
+            }
+        }
+
+        function loadProfileData() {
+            document.getElementById('profHotelName').value = profile.hotelName || 'Sawaji Hotel';
+            document.getElementById('profOwner').value = profile.owner || '';
+            document.getElementById('profPhone').value = profile.phone || '';
+            document.getElementById('profAddress').value = profile.address || '';
+            document.getElementById('homeHotelTitleDisplay').innerText = profile.hotelName || 'Sawaji Hotel';
+        }
+
+        function addExpense() {
+            let amt = parseFloat(document.getElementById('expAmt').value);
+            let reason = document.getElementById('expReason').value.trim();
+
+            if (!amt || amt <= 0 || !reason) return alert('Please enter valid expense amount and reason!');
+
+            let today = new Date();
+            let formattedDate = today.toLocaleDateString('en-GB') + ' ' + today.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            let expRecord = {
+                id: Date.now().toString().slice(-6),
+                date: formattedDate,
+                reason: reason,
+                total: amt,
+                payType: 'Cash',
+                type: 'expense'
+            };
+
+            billsData.push(expRecord);
+            localStorage.setItem('sawaji_main_bills', JSON.stringify(billsData));
+
+            document.getElementById('expAmt').value = '';
+            document.getElementById('expReason').value = '';
+
+            updateTrackerAndTables();
+        }
+
+        function updateTrackerAndTables() {
+            let cashList = document.getElementById('cashListContent');
+            let onlineList = document.getElementById('onlineListContent');
+            let historyBody = document.getElementById('historyTableBody');
+
+            cashList.innerHTML = '';
+            onlineList.innerHTML = '';
+            historyBody.innerHTML = '';
+
+            let totalCash = 0;
+            let totalOnline = 0;
+            let totalExpense = 0;
+
+            billsData.forEach(item => {
+                let label = item.type === 'expense' ? `Expense: ${item.reason}` : `Bill #${item.id}`;
+                historyBody.innerHTML += `
+                    <tr>
+                        <td><input type="checkbox" class="history-chk" value="${item.id}"></td>
+                        <td>${label} (${item.payType})</td>
+                        <td>₹${item.total}</td>
+                    </tr>
+                `;
+
+                if (item.type === 'expense') {
+                    totalExpense += item.total;
+                    cashList.innerHTML += `
+                        <div class="tracker-row-item expense">
+                            <span>- ${item.reason}</span>
+                            <span>-₹${item.total}</span>
+                        </div>
+                    `;
+                } else {
+                    if (item.payType === 'Cash') {
+                        totalCash += item.total;
+                        cashList.innerHTML += `
+                            <div class="tracker-row-item">
+                                <span>Bill #${item.id}</span>
+                                <span>+₹${item.total}</span>
+                            </div>
+                        `;
+                    } else {
+                        totalOnline += item.total;
+                        onlineList.innerHTML += `
+                            <div class="tracker-row-item">
+                                <span>Bill #${item.id}</span>
+                                <span>+₹${item.total}</span>
+                            </div>
+                        `;
+                    }
+                }
+            });
+
+            let netCash = totalCash - totalExpense;
+            let totalBiz = totalCash + totalOnline;
+
+            document.getElementById('dispTotalCash').innerText = `₹${totalCash}`;
+            document.getElementById('dispTotalOnline').innerText = `₹${totalOnline}`;
+            document.getElementById('dispTotalBiz').innerText = `₹${totalBiz}`;
+            document.getElementById('dispNetCash').innerText = `₹${netCash}`;
+        }
+
+        function toggleSelectAllHistory(chk) {
+            document.querySelectorAll('.history-chk').forEach(c => c.checked = chk.checked);
+        }
+
+        function deleteSelectedBills() {
+            let chks = document.querySelectorAll('.history-chk:checked');
+            if (chks.length === 0) return alert('Please select at least one record!');
+
+            let idsToDelete = Array.from(chks).map(c => String(c.value));
+            billsData = billsData.filter(item => !idsToDelete.includes(String(item.id)));
+            localStorage.setItem('sawaji_main_bills', JSON.stringify(billsData));
+
+            updateTrackerAndTables();
+            closeModal('historyModal');
+        }
+
+        async function connectBluetooth() {
+            try {
+                btDevice = await navigator.bluetooth.requestDevice({
+                    acceptAllDevices: true,
+                    optionalServices: [
+                        '000018f0-0000-1000-8000-00805f9b34fb', 
+                        '0000ff00-0000-1000-8000-00805f9b34fb', 
+                        '49535343-fe7d-41aa-a73f-224465000000',
+                        '00001101-0000-1000-8000-00805f9b34fb'
+                    ]
+                });
+
+                document.getElementById('btStatusMsg').innerText = "Connecting...";
+                const server = await btDevice.gatt.connect();
+                const services = await server.getPrimaryServices();
+
+                for (let service of services) {
+                    const characteristics = await service.getCharacteristics();
+                    for (let c of characteristics) {
+                        if (c.properties.write || c.properties.writeWithoutResponse) {
+                            btCharacteristic = c;
+                            break;
+                        }
+                    }
+                    if (btCharacteristic) break;
+                }
+
+                if (btCharacteristic) {
+                    document.getElementById('btStatusMsg').innerText = "Connected: " + (btDevice.name || "Printer");
+                    document.getElementById('btStatusMsg').style.color = "#16a34a";
+                    alert('Bluetooth printer connected successfully!');
+                } else {
+                    document.getElementById('btStatusMsg').innerText = "Writing Service Not Found";
+                    alert('Printer writing service not found.');
+                }
+            } catch (err) {
+                document.getElementById('btStatusMsg').innerText = "Connection Failed";
+                alert('Bluetooth Error: ' + err.message);
+            }
+        }
+
+        async function sendRawData(bytes) {
+            if (!btCharacteristic) {
+                alert('Printer is not connected via Bluetooth.');
+                return false;
+            }
+
+            const chunkSize = 64; 
+            for (let i = 0; i < bytes.length; i += chunkSize) {
+                let chunk = bytes.slice(i, i + chunkSize);
+                if (btCharacteristic.properties.writeWithoutResponse) {
+                    await btCharacteristic.writeValueWithoutResponse(chunk);
+                } else {
+                    await btCharacteristic.writeValue(chunk);
+                }
+            }
+            return true;
+        }
+
+        async function testPrint() {
+            if (!btCharacteristic) return alert('Please connect printer first!');
+            let encoder = new TextEncoder();
+            let data = new Uint8Array([
+                0x1B, 0x40, 
+                0x1B, 0x61, 0x01, 
+                ...encoder.encode("*** TEST PRINT SUCCESS ***\n\n\n\n"),
+                0x1D, 0x56, 0x00 
+            ]);
+            await sendRawData(data);
+        }
+
+        async function printDirectESC(records) {
+            if (!btCharacteristic) {
+                alert('Printer not connected. Opening browser print dialog.');
+                window.print();
+                return;
+            }
+
+            let encoder = new TextEncoder();
+            let fullBuffer = [];
+
+            fullBuffer.push(0x1B, 0x40);
+
+            for (let rec of records) {
+                if (rec.type === 'expense') continue;
+
+                fullBuffer.push(0x1B, 0x61, 0x01);
+                fullBuffer.push(0x1B, 0x21, 0x30);
+                let titleStr = (profile.hotelName || 'Sawaji Hotel') + "\n";
+                fullBuffer.push(...encoder.encode(titleStr));
+
+                fullBuffer.push(0x1B, 0x21, 0x00);
+                fullBuffer.push(...encoder.encode("================================\n"));
+
+                fullBuffer.push(0x1B, 0x61, 0x00);
+                fullBuffer.push(...encoder.encode(`Date : ${rec.date}\n`));
+                fullBuffer.push(...encoder.encode(`Type : ${rec.payType}\n`));
+                fullBuffer.push(...encoder.encode("--------------------------------\n"));
+
+                rec.items.forEach(i => {
+                    let unitStr = i.priceType === 'kg' ? `${i.qty}kg` : `x${i.qty}`;
+                    let itemLine = `${i.name}\n  ${unitStr} x Rs.${i.rate} = Rs.${(i.qty * i.rate).toFixed(2)}\n`;
+                    fullBuffer.push(...encoder.encode(itemLine));
+                });
+
+                fullBuffer.push(...encoder.encode("--------------------------------\n"));
+                fullBuffer.push(0x1B, 0x21, 0x20);
+                fullBuffer.push(...encoder.encode(`TOTAL: Rs.${rec.total.toFixed(2)}\n`));
+                
+                fullBuffer.push(0x1B, 0x21, 0x00);
+                fullBuffer.push(0x1B, 0x61, 0x01);
+                fullBuffer.push(...encoder.encode("================================\n"));
+                fullBuffer.push(...encoder.encode("      Thank You! Visit Again    \n\n\n\n"));
+            }
+
+            fullBuffer.push(0x1D, 0x56, 0x00);
+
+            let bytes = new Uint8Array(fullBuffer);
+            let success = await sendRawData(bytes);
+            if (success) {
+                closeModal('printAreaModal');
+            }
+        }
+
+        async function printDirectTrackerESC(totalCash, totalOnline, totalExpense, totalBiz, netCash) {
+            if (!btCharacteristic) return;
+
+            let encoder = new TextEncoder();
+            let fullBuffer = [];
+            let todayStr = new Date().toLocaleDateString('en-GB') + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            fullBuffer.push(0x1B, 0x40);
+            fullBuffer.push(0x1B, 0x61, 0x01);
+            fullBuffer.push(0x1B, 0x21, 0x20);
+            fullBuffer.push(...encoder.encode((profile.hotelName || 'Sawaji Hotel') + "\n"));
+            
+            fullBuffer.push(0x1B, 0x21, 0x00);
+            fullBuffer.push(...encoder.encode("*** DAILY TRACKER REPORT ***\n"));
+            fullBuffer.push(...encoder.encode(`${todayStr}\n`));
+            fullBuffer.push(...encoder.encode("================================\n"));
+
+            fullBuffer.push(0x1B, 0x61, 0x00);
+            fullBuffer.push(...encoder.encode(`Total Cash In  : Rs.${totalCash}\n`));
+            fullBuffer.push(...encoder.encode(`Total Online   : Rs.${totalOnline}\n`));
+            fullBuffer.push(...encoder.encode("--------------------------------\n"));
+            fullBuffer.push(...encoder.encode("EXPENSE DETAILS:\n"));
+
+            billsData.forEach(item => {
+                if (item.type === 'expense') {
+                    fullBuffer.push(...encoder.encode(` - ${item.reason} : Rs.${item.total}\n`));
+                }
+            });
+
+            fullBuffer.push(...encoder.encode(`Total Expense  : Rs.${totalExpense}\n`));
+            fullBuffer.push(...encoder.encode("--------------------------------\n"));
+
+            fullBuffer.push(0x1B, 0x21, 0x10);
+            fullBuffer.push(...encoder.encode(`TOTAL BUSINESS : Rs.${totalBiz}\n`));
+            let fullCardNetCash = `NET CASH HAND  : Rs.${netCash}\n`;
+            fullBuffer.push(...encoder.encode(fullCardNetCash));
+
+            fullBuffer.push(0x1B, 0x21, 0x00);
+            fullBuffer.push(0x1B, 0x61, 0x01);
+            fullBuffer.push(...encoder.encode("================================\n\n\n\n"));
+            fullBuffer.push(0x1D, 0x56, 0x00);
+
+            let bytes = new Uint8Array(fullBuffer);
+
+            try {
+                let success = await sendRawData(bytes);
+                if (success) {
+                    closeModal('printAreaModal');
+                }
+            } catch (err) {
+                console.error('Tracker Bluetooth print error:', err);
+                alert('Tracker printer error: ' + (err.message || err));
+            }
+        }
     </script>
 </body>
 </html>
+
